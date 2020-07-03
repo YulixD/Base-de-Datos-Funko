@@ -335,10 +335,10 @@ INSERT INTO Empleado VALUES     (1, 'Jorge', 'Lopez', 'Silva', 'Administrador', 
                                 (2, 'Juan', 'Garcia', 'YELDAI', 'Empleado', 2),
                                 (3, 'Daniel', 'Torres', 'Silva','Administrador', 3),
                                 (4, 'Brandon', 'Salazr', 'VICENTE', 'Empleado', 4),
-                                (6, 'YULI', 'MESA', 'SilvaS','Administrador', 5),
-                                (7, 'PEDOR', 'MARCOS', 'SALAZAR', 'Empleado', 7),
-                                (8, 'CIRO', 'HERNANDEZ', 'SALAZAR', 'Empleado', 8),
-                                (9, 'REBECA', 'VILLA', 'SALAZAR', 'Empleado', 9);
+                                (5, 'YULI', 'MESA', 'SilvaS','Administrador', 5),
+                                (6, 'PEDOR', 'MARCOS', 'SALAZAR', 'Empleado', 6),
+                                (7, 'CIRO', 'HERNANDEZ', 'SALAZAR', 'Empleado', 7),
+                                (8, 'REBECA', 'VILLA', 'SALAZAR', 'Empleado', 8);
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 INSERT INTO Cliente VALUES 
