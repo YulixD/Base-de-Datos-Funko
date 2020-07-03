@@ -107,7 +107,7 @@ create table Inventario
     IdInv int,
     cantInv int(9) NOT NULL,
     idSuc int NOT NULL,
-    IdArt int,
+    IdArt int NOT NULL,
     CONSTRAINT pk6 PRIMARY KEY(IdInv),
     CONSTRAINT fk5 FOREIGN key (idSuc) REFERENCES Sucursal(IdSuc) ON DELETE NO ACTION ON UPDATE CASCADE,
     CONSTRAINT fk6 FOREIGN key (IdArt) REFERENCES Articulo(IdArt) ON DELETE SET NULL ON UPDATE CASCADE
