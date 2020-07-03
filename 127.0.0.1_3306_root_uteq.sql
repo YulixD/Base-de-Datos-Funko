@@ -25,8 +25,8 @@ create table Sucursal
 create table Usuario 
 (
     IdUsu int,                                    
-    PassUs varchar(15) NOT NULL,                   
-    tipoUs varchar (15) NOT NULL,
+    PassUs varchar(15) NOT NULL,
+    CorreoUs varchar(35) NOT NULL, /* Agregue correo y quite tipo */
     CONSTRAINT pk1 PRIMARY key (IdUsu),
     INDEX IDX_MODULO_PassUs (PassUs)
 );
@@ -54,6 +54,7 @@ CREATE table Empleado
     nomEmp varchar (25) NOT NULL,
     appEmp varchar (25) NOT NULL ,
     apmEmp varchar (25) NOT NULL,
+    tipoEmp varchar (25) NOT NULL, /* Agregue tipo empleado */
     idUsu int NOT NULL UNIQUE,
     CONSTRAINT pk2 PRIMARY KEY (IdEmp),
     CONSTRAINT fk1 FOREIGN key (idUsu) REFERENCES usuario(IdUsu) ON DELETE NO ACTION ON UPDATE CASCADE,
@@ -68,7 +69,7 @@ create table Cliente
     apmCli varchar (25) NOT NULL,
     appCli varchar (25) NOT NULL,
     correoCli TEXT NOT NULL,
-    telCli int(12), 
+    telCli varchar (12), /* Se cambio de int a varchar */ 
     rcfCli varchar(27) NOT NULL UNIQUE,
     muniCli varchar (20) NOT NULL,
     calleCli varchar (25) NOT NULL, 
@@ -161,7 +162,68 @@ create table Det_venta
     /*3*/
     drop INDEX IDX_MODULO_edoSuc on Sucursal;
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
- 
+/*--------------------------------------------------------Trigger para generar usuario al insertar en Empleado---------------------------------------------------------------------------------------------------------------------*/
+ DELIMITER //
+CREATE TRIGGER disparadorUsEmp BEFORE INSERT ON Empleado
+FOR EACH ROW
+BEGIN
+    DECLARE idU INT;
+    DECLARE pass VARCHAR(15);
+    DECLARE correo VARCHAR(50);
+    DECLARE correov VARCHAR(50);
+
+    SET idU = (SELECT MAX(idUsu) FROM Usuario);
+    IF idU IS NULL THEN
+        SET idU = 1;
+    ELSE 
+        SET idU = idU +1;
+    END IF;
+
+    SET pass = (CONCAT(
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+65),
+        CHAR(ROUND(RAND()*25)+65),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+65),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+65),
+        CHAR(ROUND(RAND()*25)+97),
+        CHAR(ROUND(RAND()*25)+65)
+    )
+    );
+    SET correo = (CONCAT(new.nomEmp, '.', new.appEmp, '@funko.com.mx'));
+    SET correov = (SELECT COUNT(*) FROM Usuario WHERE CorreoUs like correo);
+
+    IF correov > 0 THEN
+        SET correo = (CONCAT(new.nomEmp, '.', new.appEmp, idU, '@funko.com.mx'));
+    END IF;
+
+    INSERT INTO Usuario VALUES(idU, pass, correo);
+END//
+DELIMITER ;
+/*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------Procedimiento para iniciar sesion---------------------------------------------------------------------------------------------------------------------*/
+DELIMITER //
+CREATE PROCEDURE procedimientoSesion (IN corr VARCHAR(50), pass VARCHAR(15), OUT valido INT)
+BEGIN
+    DECLARE c INT;
+    SET c = (SELECT COUNT(*) FROM Usuario WHERE CorreoUs like corr AND PassUs like pass);
+    IF c > 0 THEN
+        SET valido = 1;
+    ELSE
+        SET valido = 0;
+    END IF;
+END//
+DELIMITER ;
+/* CALL procedimientoSesion('Jorge.Lopez@funko.com.mx', 'cxiwKMddJiqdShH', @valido); Llamar al procedimiento*/
+/* SELECT @valido; Muestra 1 si es correcto el pass y correo o un 0 si no */
+/*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
  INSERT INTO Sucursal VALUES    (1,"POS'S","De Jesus","De Jesus ",112,255,20367,"Aguascalientes","Aguascalientes"),
                                 (2,"POS'S","San pedrito","De Jesus ",232,755,50357,"D.F","Acambay de Ruíz Castañeda"),
                                 (3,"POS'S","Santa fe","San Martín",992,2574,76280,"QUÉRETARO","Corregidora"),
@@ -175,16 +237,8 @@ create table Det_venta
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
-insert into Usuario values      (1,797979,"ADMINISTRADOR"),
-                                (2,45979,"CLIENTE"),
-                                (3,123979,"ADMINISTRADOR"),
-                                (4,5641979,"EMPLEADO"),
-                                (5,111179,"CLIENTE"),
-                                (6,766579,"CLIENTE"),
-                                (7,797339,"CLIENTE"),
-                                (8,79999,"ADMINISTRADOR"),
-                                (9,447479,"CLIENTE"),
-                                (10,74464979,"CLIENTE");
+/* SE ELIMINO INSERT INTO USUARIO, EL TRIGGER LO RELLENA SOLO */
+         
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -205,14 +259,14 @@ INSERT INTO ACCESOS VALUES      (1,"htpp:www.paginapirncipal.com","paginapirncip
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 
-INSERT INTO Empleado VALUES     (1, 'Jorge', 'Lopez', 'Silva',1),
-                                (2, 'Juan', 'Garcia', 'YELDAI',2),
-                                (3, 'Daniel', 'Torres', 'Silva',3),
-                                (4, 'Brandon', 'Salazr', 'VICENTE',4),
-                                (6, 'YULI', 'MESA', 'SilvaS',5),
-                                (7, 'PEDOR', 'MARCOS', 'SALAZAR',7),
-                                (8, 'CIRO', 'HERNANDEZ', 'SALAZAR',8),
-                                (9, 'REBECA', 'VILLA', 'SALAZAR',9);
+INSERT INTO Empleado VALUES     (1, 'Jorge', 'Lopez', 'Silva', 'Administrador', 1),
+                                (2, 'Juan', 'Garcia', 'YELDAI', 'Empleado', 2),
+                                (3, 'Daniel', 'Torres', 'Silva','Administrador', 3),
+                                (4, 'Brandon', 'Salazr', 'VICENTE', 'Empleado', 4),
+                                (6, 'YULI', 'MESA', 'SilvaS','Administrador', 5),
+                                (7, 'PEDOR', 'MARCOS', 'SALAZAR', 'Empleado', 7),
+                                (8, 'CIRO', 'HERNANDEZ', 'SALAZAR', 'Empleado', 8),
+                                (9, 'REBECA', 'VILLA', 'SALAZAR', 'Empleado', 9);
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 INSERT INTO Cliente VALUES 
