@@ -207,6 +207,59 @@ BEGIN
     INSERT INTO Usuario VALUES(idU, pass, correo);
 END//
 DELIMITER ;
+/*-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------Trigger para generar usuario al insertar en Cliente--------------------------------------------------------------------
+
+DELIMITER //
+CREATE TRIGGER dispUsuCli BEFORE INSERT ON Cliente
+FOR EACH ROW
+BEGIN
+    DECLARE cont int;
+    DECLARE idUC int;
+    DECLARE contraseña varchar(15);
+    DECLARE correo text;
+
+
+    SET idUC = (SELECT MAX(idUsu) FROM Usuario);
+    IF idUC is NULL THEN
+    SET idUC = 1;
+    ELSE 
+    SET idUC = idUC +1;
+    END IF;
+    SET contraseña = (CONCAT(
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65)
+    )
+    );
+    SET correo =new.correoCli;
+
+    SET cont= (SELECT COUNT(*) 
+              FROM Usuario
+              WHERE Usuario.CorreoUs like correo);
+
+    
+    IF cont like 0 THEN
+    INSERT INTO Usuario VALUES(idUC, contraseña, correo);
+    ELSE
+    SET new.idCli=null;
+   END IF;
+
+END//
+DELIMITER ;
+
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 /*--------------------------------------------------------Procedimiento para iniciar sesion---------------------------------------------------------------------------------------------------------------------*/
 DELIMITER //
@@ -223,6 +276,25 @@ END//
 DELIMITER ;
 /* CALL procedimientoSesion('Jorge.Lopez@funko.com.mx', 'cxiwKMddJiqdShH', @valido); Llamar al procedimiento*/
 /* SELECT @valido; Muestra 1 si es correcto el pass y correo o un 0 si no */
+
+/*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------------Procedimiento para agregar un producto---------------------------------------------------------------------------------------------------------------------*/
+DELIMITER //
+  CREATE PROCEDURE agregar_producto (IN nom varchar(25), IN prec float(10,2), IN cost float(10,2), IN idCat int )
+  BEGIN
+  DECLARE idA int;
+  SET idA=(SELECT max(IdArt) FROM Articulo);
+  IF idA is null THEN 
+      SET idA=1;
+    ELSE
+      SET idA=idA+1;
+    END IF;
+
+    INSERT INTO Articulo VALUES(idA,nom,prec,cost,idCat);
+
+  END//
+  DELIMITER ;
+  
 /*-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
  INSERT INTO Sucursal VALUES    (1,"POS'S","De Jesus","De Jesus ",112,255,20367,"Aguascalientes","Aguascalientes"),
                                 (2,"POS'S","San pedrito","De Jesus ",232,755,50357,"D.F","Acambay de Ruíz Castañeda"),
