@@ -189,6 +189,79 @@ DELIMITER ;
 INSERT INTO Det_venta VALUES
 (1, 5, 1, 1, 1, 1000);
 
+/*------------------------------------------------------------------------------------------------------------------------------------------*/
+/*------------------------------------------Trigger que agrega un usuario al ingresar un cliente--------------------------------------------*/
 
+DELIMITER //
+CREATE TRIGGER dispUsuCli BEFORE INSERT ON Cliente
+FOR EACH ROW
+BEGIN
+    DECLARE cont int;
+    DECLARE idUC int;
+    DECLARE contraseña varchar(15);
+    DECLARE correo text;
+
+
+    SET idUC = (SELECT MAX(idUsu) FROM Usuario);
+    IF idUC is NULL THEN
+    SET idUC = 1;
+    ELSE 
+    SET idUC = idUC +1;
+    END IF;
+    SET contraseña = (CONCAT(
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65),
+        char(round(rand()*25)+97),
+        char(round(rand()*25)+65)
+    )
+    );
+    SET correo =new.correoCli;
+
+    SET cont= (SELECT COUNT(*) 
+              FROM Usuario
+              WHERE Usuario.CorreoUs like correo);
+
+    
+    IF cont like 0 THEN
+    INSERT INTO Usuario VALUES(idUC, contraseña, correo);
+    ELSE
+    SET new.idCli=null;
+   END IF;
+
+END//
+DELIMITER ;
+
+/*----------------------------------------------------------------------------------------------------------------------------------------------*/
+/*---------------------------------------------------Procedimiento almacendao para agregar articulo---------------------------------------------*/
+
+DELIMITER //
+  CREATE PROCEDURE agregar_producto (IN nom varchar(25), IN prec float(10,2), IN cost float(10,2), IN idCat int )
+  BEGIN
+  DECLARE idA int;
+  SET idA=(SELECT max(IdArt) FROM Articulo);
+  IF idA is null THEN 
+      SET idA=1;
+    ELSE
+      SET idA=idA+1;
+    END IF;
+
+    INSERT INTO Articulo VALUES(idA,nom,prec,cost,idCat);
+
+  END//
+  DELIMITER ;
+  
+  /*-----------------------------------------------------------------------------------------------------------------------------------------------*/
+  
 
 
