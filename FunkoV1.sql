@@ -30,7 +30,7 @@ INSERT INTO Sucursal VALUES
 create table Usuario 
 (
     IdUsu int,                                    
-    PassUs varchar(15) NOT NULL,
+    PassUs varchar(32) NOT NULL,
     CorreoUs varchar(35) NOT NULL, 
     CONSTRAINT pk1 PRIMARY key (IdUsu),
     INDEX IDX_MODULO_PassUs (PassUs)
@@ -79,6 +79,7 @@ create table Cliente
     apmCli varchar (25) NOT NULL,
     appCli varchar (25) NOT NULL,
     correoCli TEXT NOT NULL,
+    passCli varchar(12) NOT NULL,
     telCli varchar (12), 
     rcfCli varchar(27) NOT NULL UNIQUE,
     muniCli varchar (20) NOT NULL,
