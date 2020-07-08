@@ -1,0 +1,77 @@
+
+DELIMITER //
+CREATE TRIGGER dispUsuCli BEFORE INSERT ON Cliente
+FOR EACH ROW
+BEGIN
+    DECLARE cont int;
+    DECLARE idUC int;
+    DECLARE contraseña varchar(32);
+    DECLARE correo varchar(35);
+
+
+    SET idUC = (SELECT MAX(idUsu) FROM Usuario);
+    IF idUC is NULL THEN
+    SET idUC = 1;
+    ELSE 
+    SET idUC = idUC +1;
+    END IF;
+
+    SET contraseña = (md5(new.passCli));
+
+    SET correo =new.correoCli;
+
+    SET cont= (SELECT COUNT(*) 
+              FROM Usuario
+              WHERE Usuario.CorreoUs like correo);
+
+    
+    IF cont like 0 THEN
+    INSERT INTO Usuario VALUES(idUC, contraseña, correo);
+    SET new.passCli=contraseña;
+    SET new.Usuario=idUC;
+    ELSE
+    SET new.idCli=null;
+   END IF;
+
+END//
+DELIMITER ;
+
+
+/*------------------Procedimiento Almacenado que agrega productos---------------------------------------*/
+
+DELIMITER //
+  CREATE PROCEDURE agregar_producto (IN nom varchar(25), IN prec float(10,2), IN cost float(10,2), IN idCat int )
+  BEGIN
+  DECLARE idA int;
+  SET idA=(SELECT max(IdArt) FROM Articulo);
+  IF idA is null THEN 
+      SET idA=1;
+    ELSE
+      SET idA=idA+1;
+    END IF;
+
+    INSERT INTO Articulo VALUES(idA,nom,prec,cost,idCat);
+
+  END//
+  DELIMITER ;
+  
+  
+  /*-------------------------------Tabla derivada de descuento---------------------------------------*/
+
+SELECT *,
+CASE
+WHEN tablita2.STATUS="TUVO DESCUENTO" THEN 0.15
+WHEN tablita2.STATUS="NO TUVO DESCUENTO" THEN 0
+END AS "DESCUENTO"
+FROM(
+SELECT *,
+CASE
+WHEN tablita.Productos_comprados>5 THEN "TUVO DESCUENTO"
+WHEN tablita.Productos_comprados<=5 THEN "NO TUVO DESCUENTO"
+END AS "STATUS"
+FROM (
+SELECT Cliente.nomCli, SUM(Det_venta.cantDetv) AS "Productos_comprados"
+FROM Det_venta INNER JOIN Venta ON(Det_venta.IdVent like Venta.idVent)
+INNER JOIN Cliente ON(Venta.IdCli like Cliente.IdCli)
+GROUP BY Cliente.nomCli)tablita)tablita2;
+
