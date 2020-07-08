@@ -1,4 +1,3 @@
-/*------------Trigger al insertar cliente--------------------------------*/
 
 DELIMITER //
 CREATE TRIGGER dispUsuCli BEFORE INSERT ON Cliente
