@@ -1,0 +1,70 @@
+CREATE VIEW view_por1
+ AS
+
+SELECT *,(CASE
+ WHEN porcentaje < 0 THEN "perdida"
+ WHEN porcentaje > 0 THEN "Hay Ganancias"
+ WHEN porcentaje = 0 THEN "No hay ganancias" end) AS estatus
+
+from 
+(
+SELECT  nomArt,cantInv as Cantidad,sum(cantInv * precArt) as Total_precArt,sum(cantInv * costoArt) as Total_Costo,
+(sum(cantInv * precArt)-sum(cantInv * costoArt)) as Ganancia_Maxim,
+((sum(cantInv * precArt)-sum(cantInv * costoArt))-((sum(cantInv * precArt)-sum(cantInv * costoArt))*0.05)) as porcentaje
+from inventario
+INNER join sucursal on(inventario.idSuc=sucursal.IdSuc)
+inner join articulo on(inventario.IdArt=articulo.IdArt)
+GROUP BY inventario.IdArt,sucursal.idSuc
+)as tabla1
+WHERE tabla1.Ganancia_Maxim=
+(
+SELECT MAX(Ganancia_Maxim) as Ganancia_Maxim
+from
+(
+SELECT  nomArt,sum(cantInv) as Cantidad,sum(cantInv * precArt) as Total_precArt,sum(cantInv * costoArt) as Total_Costo,
+(sum(cantInv * precArt)-sum(cantInv * costoArt)) as Ganancia_Maxim
+from inventario
+INNER join sucursal on(inventario.idSuc=sucursal.IdSuc)
+inner join articulo on(inventario.IdArt=articulo.IdArt)
+GROUP BY inventario.IdArt,sucursal.idSuc
+)as tabla2
+)
+;
+
+
+CREATE VIEW view_por2 as
+SELECT *
+ from 
+ (
+SELECT venta.idcli,nomcli,apmCli,appCli,muniCli as muni,sum(totalVent) as total
+from cliente 
+INNER JOIN usuario on(cliente.usuario=usuario.idUsu)
+INNER JOIN venta on(venta.idCli=cliente.idCli)
+GROUP BY idcli
+)as tabla1 where tabla1.total=(
+
+SELECT  MAX(total) as total
+
+from (
+
+SELECT venta.idcli,nomcli,apmCli,appCli,muniCli as muni,sum(totalVent) as total
+from cliente 
+INNER JOIN usuario on(cliente.usuario=usuario.idUsu)
+INNER JOIN venta on(venta.idCli=cliente.idCli)
+GROUP BY idcli
+)as tabla2
+) or
+tabla1.total=(
+
+SELECT  min(total) as total
+
+from (
+
+SELECT venta.idcli,nomcli,apmCli,appCli,muniCli as muni,sum(totalVent) as total
+from cliente 
+INNER JOIN usuario on(cliente.usuario=usuario.idUsu)
+INNER JOIN venta on(venta.idCli=cliente.idCli)
+GROUP BY idcli
+)as tabla2
+)
+;
