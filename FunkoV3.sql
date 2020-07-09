@@ -127,7 +127,6 @@ CREATE table Venta
    totalVent float (10,2) NOT NULL DEFAULT 0,
    CONSTRAINT pk4 PRIMARY KEY(IdVent),
    CONSTRAINT fk3 FOREIGN key (IdCli) REFERENCES  Cliente(idCli),
-   UNIQUE INDEX IDX_MODULO_FolioVent (totalVent),
    INDEX IDX_MODULO_fechVent (fechVent)
 );
 
