@@ -56,3 +56,13 @@ INNER JOIN  Venta on(Det_venta.IdDetv=Venta.IdVent)
  ;
 
 
+
+INSERT INTO Cliente VALUES
+(2, "Clifefnte1", "apfellido", "apellfido2", "corsfreo", "442478733", "RFCñ", "muni", "calle", "col", "edo", "cp", 1, 1, 20200607, 10, "pdass");
+
+
+INSERT INTO Cliente VALUES
+(3, "wClifefnte1", "apfell3ido", "apel3lfido2", "corsffreo", "44247873w3", "RwwFCñ", "muni", "calle", "col", "edo", "cp", 1, 1, 20200607, 12, "pdeass");
+
+INSERT INTO Cliente VALUES
+(4, "wClifen2te1", "a2pfellido", "apellf4ido2", "corsfrrseo", "4424787w33", "RwFCñ", "muni", "calle", "col", "edo", "cp", 1, 1, 20200607, 13, "pddeass");
