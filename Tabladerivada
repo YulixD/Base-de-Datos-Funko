@@ -25,3 +25,32 @@ INNER JOIN Cliente ON(Venta.IdCli=Cliente.idCli)
  )AS tabla1
 ) HAVING diferencias_dias<=(365*5)
  ;
+
+
+  SELECT  Usuario,PassUs,CorreoUs,cliente.idCli,nomCli,apmCli,telCli,rcfCli
+    ,DATEDIFF(NOW(),fechVent) AS diferencias_dias
+    FROM Usuario 
+    INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
+    INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
+    WHERE Cliente.idCli   LIKE
+    (
+    SELECT cli 
+        FROM 
+        (
+            SELECT Cliente.idCli AS cli,Venta.IdVent
+            FROM  Venta
+            INNER JOIN Cliente ON(Venta.IdCli=Cliente.idCli)
+            INNER JOIN Det_venta ON(Det_venta.IdDetv=Venta.IdVent)
+            where Venta.IdVent IN
+        (
+            SELECT Venta.IdVent
+            from Det_venta
+            INNER JOIN  Venta ON(Det_venta.IdDetv=Venta.IdVent)
+            INNER JOIN Cliente ON(Venta.IdCli=Cliente.idCli)
+             GROUP BY Cliente.IdCli
+        )
+        GROUP BY Cliente.IdCli
+
+        )AS tabla1
+        ) GROUP BY Cliente.IdCli HAVING diferencias_dias<=(365*5)
+        ;
