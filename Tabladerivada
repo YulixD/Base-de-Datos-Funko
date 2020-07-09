@@ -24,4 +24,35 @@
     )AS tabla1
     )  
     ;
+    
+    
+    SELECT DISTINCT Usuario,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli
+from Cliente 
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+
+WHERE Usuario not in
+
+(SELECT DISTINCT cli
+from (
+
+SELECT  cli,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli
+ from 
+ (
+SELECT DISTINCT Usuario as cli,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli
+from  Venta
+INNER JOIN  Det_venta on(Det_venta.IdDetv=Venta.IdVent)
+INNER JOIN Cliente on(Venta.IdCli=Cliente.idCli)
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+
+where Venta.IdVent  in 
+(
+SELECT DISTINCT Venta.IdVent from Det_venta
+INNER JOIN  Venta on(Det_venta.IdDetv=Venta.IdVent)
+)
+
+ )as tabla1
+)xd 
+)
+ ;
+
 
