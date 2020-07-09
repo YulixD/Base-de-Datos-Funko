@@ -391,7 +391,7 @@ GROUP BY Inventario.IdArt,Sucursal.idSuc
 )as tabla2
 )
 ;
-/*-------------------Cliente mas activo por municipio-------------------------------------------------------------------------*/
+/*-------------------Cliente mas activo y menos acctivo-------------------------------------------------------------------------*/
 CREATE VIEW view_por2 as
 SELECT *
  from 
