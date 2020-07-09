@@ -26,3 +26,33 @@ SELECT  Usuario,PassUs,CorreoUs,cliente.idCli,nomCli,apmCli,telCli,rcfCli
     
     HAVING diferencias_dias<=(365*5)
     ;
+    
+    
+    
+    SELECT *
+    FROM 
+    (
+   SELECT  Cliente.idCli as cli,nomCli,apmCli,telCli,rcfCli
+    ,DATEDIFF(NOW(),fechVent) AS diferencias_dias
+    FROM Usuario 
+    INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
+    INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
+    GROUP BY Cliente.idCli,nomCli,apmCli,telCli,rcfCli,diferencias_dias
+     HAVING diferencias_dias<=(365*5)
+    )AS tabla2 where tabla2.diferencias_dias
+   
+   LIKE
+    (
+    SELECT tabla1.diferencias_dias AS diferencias_dias
+    FROM 
+    (
+   SELECT  Cliente.idCli as cli,nomCli,apmCli,telCli,rcfCli
+    ,DATEDIFF(NOW(),fechVent) AS diferencias_dias
+    FROM Usuario 
+    INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
+    INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
+    GROUP BY Cliente.idCli,nomCli,apmCli,telCli,rcfCli,diferencias_dias
+     HAVING diferencias_dias<=(365*5)
+    )AS tabla1
+    )  
+    ;
