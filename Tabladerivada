@@ -1,58 +1,27 @@
-SELECT  Usuario,PassUs,CorreoUs,cliente.idCli,nomCli,apmCli,telCli,rcfCli
-    ,DATEDIFF(NOW(),fechVent) AS diferencias_dias
-    FROM Usuario 
-    INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
-    INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
-    WHERE Cliente.idCli   LIKE
-    (
-    SELECT cli 
-    FROM 
-    (
-    SELECT Cliente.idCli AS cli,Venta.IdVent
-    FROM  Venta
-    INNER JOIN Cliente ON(Venta.IdCli=Cliente.idCli)
-    INNER JOIN Det_venta ON(Det_venta.IdDetv=Venta.IdVent)
-    where Venta.IdVent IN
-    (
-    SELECT Venta.IdVent
-    from Det_venta
-    INNER JOIN  Venta ON(Det_venta.IdDetv=Venta.IdVent)
-    INNER JOIN Cliente ON(Venta.IdCli=Cliente.idCli)
-
-    )
-    GROUP BY  cli
-    )AS tabla1
-    ) GROUP BY  Usuario,PassUs,CorreoUs,cliente.idCli,nomCli,apmCli,telCli,rcfCli 
-    
-    HAVING diferencias_dias<=(365*5)
-    ;
-    
-    
-    
-    SELECT *
+  SELECT *
     FROM 
     (
    SELECT  Cliente.idCli as cli,nomCli,apmCli,telCli,rcfCli
-    ,DATEDIFF(NOW(),fechVent) AS diferencias_dias
+    ,DATEDIFF(fechVent,NOW()) AS diferencias_dias
     FROM Usuario 
     INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
     INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
-    GROUP BY Cliente.idCli,nomCli,apmCli,telCli,rcfCli,diferencias_dias
-     HAVING diferencias_dias<=(365*5)
+    GROUP BY Cliente.idCli,nomCli,apmCli,telCli,rcfCli
+     HAVING diferencias_dias<(365*5)
     )AS tabla2 where tabla2.diferencias_dias
-   
-   LIKE
+   <=
     (
-    SELECT tabla1.diferencias_dias AS diferencias_dias
+    SELECT max( tabla1.diferencias_dias) AS diferencias_dias
     FROM 
     (
    SELECT  Cliente.idCli as cli,nomCli,apmCli,telCli,rcfCli
-    ,DATEDIFF(NOW(),fechVent) AS diferencias_dias
+    ,DATEDIFF(fechVent,NOW()) AS diferencias_dias
     FROM Usuario 
     INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
     INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
-    GROUP BY Cliente.idCli,nomCli,apmCli,telCli,rcfCli,diferencias_dias
+    GROUP BY Cliente.idCli
      HAVING diferencias_dias<=(365*5)
     )AS tabla1
     )  
     ;
+
