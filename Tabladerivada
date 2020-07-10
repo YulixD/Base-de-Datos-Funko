@@ -54,6 +54,32 @@ INNER JOIN  Venta on(Det_venta.IdDetv=Venta.IdVent)
 )xd 
 )
  ;
+ 
+
+SELECT  DISTINCT(fechVent),IdVent,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli,
+CASE
+WHEN tabla1.estatus="canselado" THEN "Compra no exitosa"
+END AS leyenda
+from (
+
+SELECT  DISTINCT(fechVent),IdVent,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli,estatus 
+ from 
+ (
+SELECT   DISTINCT(fechVent), Venta.IdVent as IdVent,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli,estatus
+from  Venta
+INNER JOIN Cliente on(Venta.IdCli=Cliente.idCli)
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+where Venta.IdVent  in 
+(
+SELECT Venta.IdVent from venta
+WHERE Venta.estatus="canselado"
+)
+
+)as usuario
+
+) as tabla1
+
+;
 
 
 
