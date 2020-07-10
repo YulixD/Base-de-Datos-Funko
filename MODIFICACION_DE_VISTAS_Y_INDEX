@@ -1,0 +1,104 @@
+/*--------------------------------------------------------INDEX-----------------------------------------------------------------------*/
+    /*SA*/
+    /*1*/
+    drop INDEX BUSQUA_Sucursal on Sucursal;
+    ALTER TABLE Sucursal ADD  FULLTEXT INDEX BUSQUA_Sucursal(nomSuc(5),calleSuc(4),colSuc(4));
+    /*2*/
+    DROP INDEX IDX_MODULO_PassUs ON Usuario;
+    ALTER TABLE Usuario ADD  UNIQUE INDEX IDX_MODULO_PassUs (PassUs);
+    /*3*/
+    DROP INDEX IDX_MODULO_FolioVent  ON Venta;
+    ALTER TABLE Venta ADD  INDEX IDX_MODULO_FolioVent (FolioVent);
+    /*DE*/
+    /*1*/   
+    DROP INDEX IDX_MODULO_cpSuc  ON Sucursal;
+    ALTER TABLE Sucursal ADD INDEX IDX_MODULO_cpSuc (cpSuc);
+    /*2*/
+    drop INDEX BUSQUA_Articulo on Articulo;
+    ALTER TABLE Articulo ADD FULLTEXT INDEX BUSQUA_Articulo (nomArt(5));
+     /*3*/
+    drop INDEX BUSQUA_CLIENTE on Cliente;
+    ALTER TABLE Cliente ADD FULLTEXT INDEX BUSQUA_CLIENTE (apmCli(5),appCli(5));
+/*--------------------------------------------------------ELIMINACION--------------------------------------------------------------------*/
+    /*SA*/
+    /*1*/
+    drop INDEX IDX_MODULO_fechVent on Venta;
+    /*2*/
+    drop INDEX IDX_MODULO_telCli on Cliente;
+    /*3*/
+    drop INDEX IDX_MODULO_edoSuc on Sucursal;
+    /*DE*/
+     /*1*/
+    drop INDEX  IDX_MODULO_calleSuc on Sucursal;
+     /*2*/
+    drop INDEX   IDX_MODULO_CorreoUs on Usuario;
+/*--------------------------------------------------------VISTAS--------------------------------------------------------------------*/
+
+ALTER VIEW view_por1
+ AS
+SELECT *,(CASE
+ WHEN DESCENTO < 0 THEN "PERDIDAD"
+ WHEN DESCENTO > 0 THEN "HAY GANANCIAS"
+ WHEN DESCENTO = 0 THEN "NO SE GENERA GANANCIAS " end) AS ESTATUS
+
+from 
+(
+SELECT  nomArt AS ARTICULO ,sum(cantInv * precArt) as Total_precArt,sum(cantInv * costoArt) as Total_Costo,
+(sum(cantInv * precArt)-sum(cantInv * costoArt)) as Ganancia_Maxim,
+((sum(cantInv * precArt)-sum(cantInv * costoArt))-((sum(cantInv * precArt)-sum(cantInv * costoArt))*0.05)) as DESCENTO
+from Inventario
+INNER join Sucursal on(Inventario.idSuc=Sucursal.IdSuc)
+inner join Articulo on(Inventario.IdArt=Articulo.IdArt)
+GROUP BY Inventario.IdArt,Sucursal.idSuc
+)as tabla1
+WHERE tabla1.Ganancia_Maxim=
+(
+SELECT MAX(Ganancia_Maxim) as Ganancia_Maxim
+from
+(
+SELECT  nomArt,sum(cantInv) as Cantidad,sum(cantInv * precArt) as Total_precArt,sum(cantInv * costoArt) as Total_Costo,
+(sum(cantInv * precArt)-sum(cantInv * costoArt)) as Ganancia_Maxim
+from Inventario
+INNER join Sucursal on(Inventario.idSuc=Sucursal.IdSuc)
+inner join Articulo on(Inventario.IdArt=Articulo.IdArt)
+GROUP BY Inventario.IdArt,Sucursal.idSuc
+)as tabla2
+)
+;
+/*-------------------Cliente mas activo y menos acctivo-------------------------------------------------------------------------*/
+ALTER VIEW view_por2 as
+SELECT *
+ from 
+ (
+SELECT Venta.idcli,CONCAT(nomcli," ",apmCli," ",appCli) AS NOMBRE,muniCli as MUNICIPIO,sum(totalVent) as total
+from Cliente 
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+INNER JOIN Venta on(Venta.idCli=Cliente.idCli)
+GROUP BY idcli
+)as tabla1 where tabla1.total=(
+
+SELECT  MAX(total) as total
+
+from (
+
+SELECT Venta.idcli,CONCAT(nomcli," ",apmCli," ",appCli) AS NOMBRE,muniCli as MUNICIPIO,sum(totalVent) as total
+from Cliente 
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+INNER JOIN Venta on(Venta.idCli=Cliente.idCli)
+GROUP BY idcli
+)as tabla2
+) or
+tabla1.total=(
+
+SELECT  min(total) as total
+
+from (
+
+SELECT Venta.idcli,CONCAT(nomcli," ",apmCli," ",appCli) AS NOMBRE,muniCli as MUNICIPIO,sum(totalVent) as totall
+from Cliente 
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+INNER JOIN Venta on(Venta.idCli=Cliente.idCli)
+GROUP BY idcli
+)as tabla2
+)
+;
