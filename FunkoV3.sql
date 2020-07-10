@@ -430,6 +430,109 @@ GROUP BY idcli
 ;
 /*--------------------------------------------------------------------------------------------------------------------------------------*/
 
+/*-------------------------Imprimir la factura---------------------------*/
+
+CREATE VIEW Factura AS
+SELECT Venta.folioVent AS "FOLIO", Venta.fechaFac AS "FECHA",
+concat_ws(' ', Cliente.nomCli,Cliente.appCli,Cliente.apmCli) AS "CLIENTE",
+Cliente.rcfCli AS "RFC", 
+concat_ws(' ', Cliente.calleCli,Cliente.noeCli,Cliente.noiCli,Cliente.colCli) AS "DIRECCION",
+concat_ws('/', Cliente.edoCli,Cliente.muniCli) AS "ESTADO/MUNICIPIO",
+Sucursal.nomSuc AS "SUCURSAL", Articulo.nomArt AS "PRODUCTO",
+Det_venta.cantDetv AS "CANTIDAD",
+Det_venta.SubDet AS "SUBTOTAL"
+FROM Cliente INNER JOIN Venta ON(Cliente.IdCli like Venta.idCli)
+INNER JOIN Det_venta ON(Venta.idVent like Det_venta.idVent)
+INNER JOIN Inventario ON (Det_venta.idSuc like Inventario.idSuc AND Det_venta.IdArt like Inventario.IdArt) 
+INNER JOIN Articulo ON (Inventario.IdArt like Articulo.IdArt)
+INNER JOIN Sucursal ON(Inventario.IdSuc like Sucursal.idSuc)
+WHERE Venta.estatus like "Pagada"; 
+
+/*------------------------Trigger al actualizar venta----------------------------*/
+
+DELIMITER //
+CREATE TRIGGER status AFTER UPDATE ON Venta
+FOR EACH ROW
+BEGIN
+DECLARE dev1 int;
+DECLARE dev2 int;
+DECLARE can int;
+DECLARE idD int;
+DECLARE idA int;
+DECLARE idS int;
+DECLARE done int DEFAULT 0;
+DECLARE status varchar(15);
+
+
+DECLARE c1 CURSOR FOR SELECT cantDetv, IdDetv, Det_venta.IdArt, Det_venta.IdSuc
+FROM Venta INNER JOIN Det_venta ON(Venta.IdVent like Det_venta.idVent)
+WHERE Venta.idVent=old.idVent; 
+
+DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done=1;
+
+OPEN c1;
+
+SET status=new.estatus;
+
+IF status LIKE "Cancelado" THEN
+REPEAT
+    FETCH c1 INTO can,idD,idA,idS;
+    IF NOT done THEN
+    SET dev1=(SELECT cantInv
+    FROM Det_venta INNER JOIN Inventario ON(Det_venta.IdSuc like Inventario.IdSuc and Det_venta.IdArt like Inventario.IdArt)
+    WHERE Det_venta.IdArt=idA and Det_venta.IdSuc=idS);
+    SET dev2=dev1+can;
+
+    UPDATE Inventario SET cantInv=dev2 WHERE idSuc=idS and IdArt=idA;
+
+    DELETE FROM Det_venta WHERE IdDetv=idD;
+
+    END IF;
+  UNTIL done END REPEAT;
+  CLOSE c1;
+
+END IF;
+END;//
+DELIMITER ;
+
+/*------------------Historial de Compras---------------------------------*/
+
+DELIMITER //
+CREATE PROCEDURE Hist_Compras (IN idC int)
+BEGIN
+SELECT Articulo.nomArt,Articulo.precArt, Venta.fechVent
+FROM Venta INNER JOIN Det_venta ON(Venta.idVent like Det_venta.IdVent)
+INNER JOIN Inventario ON(Det_venta.IdArt like Inventario.IdArt and Det_venta.IdSuc like Inventario.IdSuc)
+INNER JOIN Articulo ON(Inventario.IdArt like Articulo.IdArt)
+WHERE Venta.IdCli=idC;
+END//
+DELIMITER ;
+
+CALL Hist_Compras(1);
+
+/*-Tabla derivada del cliente que mas a comprado y el que menos a comprado_*/
+
+SELECT *
+FROM (
+SELECT Cliente.nomCli, COUNT(*) AS "Num_Compras"
+FROM Venta INNER JOIN Cliente ON(Venta.idCli like Cliente.idCli)
+GROUP BY Venta.IdCli)tabla1
+WHERE tabla1.Num_Compras=(
+SELECT MIN(tabla2.Num_Compras)
+FROM(
+SELECT Cliente.nomCli, COUNT(*) AS "Num_Compras"
+FROM Venta INNER JOIN Cliente ON(Venta.idCli like Cliente.idCli)
+GROUP BY Venta.IdCli)tabla2
+) or tabla1.Num_Compras=(
+SELECT max(tabla3.Num_Compras)
+FROM (
+SELECT Cliente.nomCli, COUNT(*) AS "Num_Compras"
+FROM Venta INNER JOIN Cliente ON(Venta.idCli like Cliente.idCli)
+GROUP BY Venta.IdCli)tabla3
+);
+
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
 SELECT * FROM Det_venta;
 SELECT * FROM Articulo;
 SELECT * FROM Usuario;
