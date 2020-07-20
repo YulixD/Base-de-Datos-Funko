@@ -146,24 +146,42 @@ create table Det_venta
    CONSTRAINT fk7 FOREIGN key (idVent) REFERENCES Venta(idVent) ON DELETE NO ACTION ON UPDATE CASCADE,
    CONSTRAINT fk8 FOREIGN KEY(idSuc) REFERENCES Inventario(idSuc) ON DELETE NO ACTION ON UPDATE CASCADE
 );
-
 /*--------------------------------------------------------INDEX-----------------------------------------------------------------------*/
+    /*SA*/
     /*1*/
     drop INDEX BUSQUA_Sucursal on Sucursal;
-    ALTER TABLE Sucursal ADD  FULLTEXT INDEX BUSQUA_Sucursal(nomSuc(5)asc,calleSuc(4) ASC,colSuc(4) ASC);
+    ALTER TABLE Sucursal ADD  FULLTEXT INDEX BUSQUA_Sucursal(nomSuc(5),calleSuc(4),colSuc(4));
     /*2*/
     DROP INDEX IDX_MODULO_PassUs ON Usuario;
     ALTER TABLE Usuario ADD  UNIQUE INDEX IDX_MODULO_PassUs (PassUs);
     /*3*/
     DROP INDEX IDX_MODULO_FolioVent  ON Venta;
     ALTER TABLE Venta ADD  INDEX IDX_MODULO_FolioVent (FolioVent);
+    /*DE*/
+    /*1*/   
+    DROP INDEX IDX_MODULO_cpSuc  ON Sucursal;
+    ALTER TABLE Sucursal ADD INDEX IDX_MODULO_cpSuc (cpSuc);
+    /*2*/
+    drop INDEX BUSQUA_Articulo on Articulo;
+    ALTER TABLE Articulo ADD FULLTEXT INDEX BUSQUA_Articulo (nomArt(5));
+     /*3*/
+    drop INDEX BUSQUA_CLIENTE on Cliente;
+    ALTER TABLE Cliente ADD FULLTEXT INDEX BUSQUA_CLIENTE (apmCli(5),appCli(5));
+                                                                            
 /*--------------------------------------------------------ELIMINACION--------------------------------------------------------------------*/
+    /*SA*/
     /*1*/
     drop INDEX IDX_MODULO_fechVent on Venta;
     /*2*/
     drop INDEX IDX_MODULO_telCli on Cliente;
     /*3*/
     drop INDEX IDX_MODULO_edoSuc on Sucursal;
+    /*DE*/
+     /*1*/
+    drop INDEX  IDX_MODULO_calleSuc on Sucursal;
+     /*2*/
+    drop INDEX   IDX_MODULO_CorreoUs on Usuario;
+                                                                            
 /*------------------------------------------Trigger de Inventario--------------------------------------------------------------------------------------------*/
 DROP TRIGGER IF EXISTS disparadorInven;
 DELIMITER //
