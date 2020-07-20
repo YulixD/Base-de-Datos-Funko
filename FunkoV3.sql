@@ -150,7 +150,7 @@ create table Det_venta
 /*--------------------------------------------------------INDEX-----------------------------------------------------------------------*/
     /*1*/
     drop INDEX BUSQUA_Sucursal on Sucursal;
-    ALTER TABLE Sucursal ADD  FULLTEXT INDEX BUSQUA_Sucursal(nomSuc(5),calleSuc(4),colSuc(4));
+    ALTER TABLE Sucursal ADD  FULLTEXT INDEX BUSQUA_Sucursal(nomSuc(5)asc,calleSuc(4) ASC,colSuc(4) ASC);
     /*2*/
     DROP INDEX IDX_MODULO_PassUs ON Usuario;
     ALTER TABLE Usuario ADD  UNIQUE INDEX IDX_MODULO_PassUs (PassUs);
@@ -358,7 +358,7 @@ SELECT Cliente.nomCli, SUM(Det_venta.cantDetv) AS "Productos_comprados"
 FROM Det_venta INNER JOIN Venta ON(Det_venta.IdVent like Venta.idVent)
 INNER JOIN Cliente ON(Venta.IdCli like Cliente.IdCli)
 GROUP BY Cliente.nomCli)tablita)tablita2;
-/*--------------------------------------------------Vista de ganancias o perdidas--------------------------------------------------------*/
+/*--------------------------------------------------Vista de ganancias o perdidas al aplicar un descuento--------------------------------------------------------*/
 CREATE VIEW view_por1
  AS
 
@@ -531,11 +531,132 @@ FROM Venta INNER JOIN Cliente ON(Venta.idCli like Cliente.idCli)
 GROUP BY Venta.IdCli)tabla3
 );
 
-/*------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+/*--------------------------------------------------Vista de las personas que han canselado ----------------------------------------------------------------------------------*/
+    create  VIEW view_por8 as
+SELECT  DISTINCT(fechVent),IdVent as venta ,PassUs as contraseña ,CorreoUs as coorreo,CONCAT (nomCli," ",apmCli) as nombre ,telCli as telefono,rcfCli as rfc,
+CASE
+WHEN tabla1.estatus="canselado" THEN "Compra no exitosa"
+END AS leyenda
+from (
 
+SELECT  DISTINCT(fechVent),IdVent,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli,estatus 
+ from 
+ (
+SELECT   DISTINCT(fechVent), Venta.IdVent as IdVent,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli,estatus
+from  Venta
+INNER JOIN Cliente on(Venta.IdCli=Cliente.idCli)
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+where Venta.IdVent  in 
+(
+SELECT Venta.IdVent from Venta
+WHERE Venta.estatus="canselado"
+)
+
+)as usuario
+
+) as tabla1;
+/*------------------------------------------------------Tabala derivada de las personas que no comparan desde hace 5 años----------------------------------------------------------------------------------------*/
+   SELECT *
+    FROM 
+    (
+   SELECT DISTINCT( Cliente.idCli) as cli,nomCli,apmCli,telCli,rcfCli
+    ,DATEDIFF(fechVent,NOW()) AS diferencias_dias
+    FROM Usuario 
+    INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
+    INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
+     HAVING diferencias_dias<(365*5)
+    )AS tabla2 where tabla2.diferencias_dias
+   <=
+    (
+    SELECT max( tabla1.diferencias_dias) AS diferencias_dias
+    FROM 
+    (
+   SELECT DISTINCT( Cliente.idCli) as cli,nomCli,apmCli,telCli,rcfCli
+    ,DATEDIFF(fechVent,NOW()) AS diferencias_dias
+    FROM Usuario 
+    INNER JOIN Cliente ON(Usuario.IdUsu=Cliente.Usuario)
+    INNER JOIN Venta ON(Venta.IdCli=Cliente.idCli)
+     HAVING diferencias_dias<=(365*5)
+    )AS tabla1
+    )  
+    ;
+/*-------------------------------------------------------Subconsulta que permite saber que personas estan registradas pero no han realizado un venta-----------------------------------------------------------------------------------------------------*/
+     
+SELECT DISTINCT Usuario,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli
+from Cliente 
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+
+WHERE Usuario not in
+
+(SELECT DISTINCT cli
+from (
+
+SELECT  cli,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli
+ from 
+ (
+SELECT DISTINCT Usuario as cli,PassUs,CorreoUs,nomCli,apmCli,telCli,rcfCli
+from  Venta
+INNER JOIN Cliente on(Venta.IdCli=Cliente.idCli)
+INNER JOIN Usuario on(Cliente.Usuario=Usuario.idUsu)
+
+where Venta.IdVent  in 
+(
+SELECT DISTINCT Venta.IdVent from  Venta
+
+)
+
+ )as tabla1
+)x
+)
+;
+/*----------------------------------------------------------Procedmineto que guarda las personas que han canselado una compra--------------------------------------------------------------------------------------------------*/
+DROP PROCEDURE prueba;
+
+DELIMITER //
+
+CREATE PROCEDURE prueba()
+BEGIN
+DECLARE done INT DEFAULT 0;
+DECLARE idVen,IdCl int;
+DECLARE fechaFa date;
+DECLARE folioVen int;
+DECLARE fechVen date;
+DECLARE totalVen decimal(10,2);
+DECLARE cur1 CURSOR FOR SELECT DISTINCT idVent,Cliente.IdCli,folioVent,fechaFac,fechVent,totalVent FROM venta INNER JOIN  cliente on(Venta.idCli=Cliente.idCli )
+where estatus="canselado";
+
+DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done = 1;
+OPEN cur1;
+
+REPEAT
+FETCH cur1 INTO idVen,IdCl,folioVen,fechaFa,fechVen,totalVen;
+INSERT INTO Venta3 VALUES (0,idVen,IdCl,folioVen,fechaFa,fechVen,totalVen);
+UNTIL done END REPEAT;
+CLOSE cur1;
+END//
+DELIMITER ;
+/*Tabla donde se guardan*/
+        
+CREATE table Venta3
+(
+  id int  AUTO_INCREMENT ,
+   IdVent int,
+   IdCli int ,
+   folioVent int ,
+   fechaFac date ,
+   fechVent date ,
+   totalVent float (10,2) ,
+   CONSTRAINT pk13 PRIMARY KEY(id),
+   CONSTRAINT fk12 FOREIGN key (IdCli) REFERENCES  Cliente(idCli)
+);
+/*------------------------------------------------------------------------------------------------------------------------------------------------------------*/
 SELECT * FROM Det_venta;
 SELECT * FROM Articulo;
 SELECT * FROM Usuario;
 SELECT * FROM Empleado;
 SELECT * FROM Cliente;
+
+    
+    
+
 
