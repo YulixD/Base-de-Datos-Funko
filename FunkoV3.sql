@@ -2,7 +2,6 @@ drop database UTEQ;
 create database UTEQ;
 USE UTEQ;
 
-
 create table Sucursal 
 (
     IdSuc int,
@@ -17,6 +16,7 @@ create table Sucursal
     CONSTRAINT pk7 PRIMARY KEY(IdSuc),   
     INDEX IDX_MODULO_cpSuc (cpSuc),
     INDEX IDX_MODULO_edoSuc (edoSuc),
+    INDEX IDX_MODULO_calleSuc (calleSuc),
     FULLTEXT INDEX BUSQUA_Sucursal (calleSuc(4),colSuc(4))
 
 );
@@ -28,7 +28,8 @@ create table Usuario
     PassUs varchar(32) NOT NULL,
     CorreoUs varchar(35) NOT NULL, 
     CONSTRAINT pk1 PRIMARY key (IdUsu),
-    INDEX IDX_MODULO_PassUs (PassUs)
+    INDEX IDX_MODULO_PassUs (PassUs),
+    INDEX IDX_MODULO_CorreoUs (CorreoUs)
 );
 
 
